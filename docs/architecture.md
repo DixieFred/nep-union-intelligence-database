@@ -9,8 +9,8 @@ DOL OLMS yearly export (LM-2, LM-3, LM-4, payees)
 Union profiles / International profiles / Consolidation targets /
 International consolidation targets / Competitor watch / Small locals
         │
-NEP MASTER Union Database (Josh's Google Sheet, read only)
-        │  scripts/master_import.py (Fridays)
+NEP MASTER Union Database (Mark Treglio's Google Sheet, read only)
+        │  scripts/master_import.py (every weekday)
         ▼
 Contacts & pipeline
         │

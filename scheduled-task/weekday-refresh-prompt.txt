@@ -1,7 +1,7 @@
 Weekday refresh of Josh Friedrich's Google Sheet "NEP Union Intelligence Database" (spreadsheet ID 1c3j7reNvBeBTLUC9B_N2lUugvR1ZQnfju_DXv1QT1sk), built from U.S. DOL OLMS yearly LM data. Run unattended: do not ask questions, make reasonable choices, and report at the end. Never delete rows in the data tabs. Never edit these tabs: Executive brief, Advocacy & political, Sales: websites & Connect Plus+, Print & magazine, Competitor takeaway, Sector summary, Prospect index, Lists, Affiliate map, Method & caveats (they are formulas or reference tables and update themselves). The only write to Contacts & pipeline is the Step 7B replacement.
 
 WHAT TODAY'S RUN DOES. Determine today's weekday in America/Chicago.
-- Monday to Thursday: refresh Union profiles, Consolidation targets and Competitor watch for the sectors whose "Update day" in the Affiliate map tab equals today (Steps 1 to 6).
+- Monday to Thursday: refresh Union profiles, Consolidation targets and Competitor watch for the sectors whose "Update day" in the Affiliate map tab equals today (Steps 1 to 6), then re-import the NEP master list into Contacts & pipeline (Step 7B).
 - Friday: refresh the Small locals (LM-3, LM-4) tab for all sectors (Steps 1, 2, 7), re-import the NEP master list into Contacts & pipeline (Step 7B), then write the weekly digest (Step 8).
 - Saturday or Sunday: do nothing and say so.
 
@@ -102,7 +102,7 @@ STEP 6 (Mon to Thu). Give new rows the formats of row 2 on each tab: currency $#
 
 STEP 7 (Friday), Small locals, keyed by OLMS file # (M): append rows from _R.small not in the tab (A to M, N = today); overwrite A to M and set N to today where values differ. Apply row 2's formats to new rows and verify a sample.
 
-STEP 7B (Friday), NEP master list re-import. The NEP master list is Josh's Google Sheet "MASTER Union Database" (ID 1XYEUd1z1vyLwPK0rI_Cp35YN5-Qnyp_iQ4AF3BwKlkk). Read it only; never edit it.
+STEP 7B (every weekday, Monday to Friday, after the day's other data steps), NEP master list re-import. The NEP master list is the Google Sheet "MASTER Union Database" owned by Mark Treglio (ID 1J-bzg1r3DrMxpv-QgZPVeKkzOyilSKZzlUtAL4pMMTw). Read it only; never edit it. If it cannot be opened (access removed or file moved), skip Step 7B and report that clearly.
 a) get_spreadsheet on it with fields ["sheets.properties.title"] to list the tab titles.
 b) Split the titles into three roughly equal groups. For each group call get_spreadsheet with includeGridData true, fields ["sheets.properties.title","sheets.data.rowData.values.formattedValue"] and ranges like "'Tab name'!A1:T" (double any apostrophe inside a tab name). Each result is large and is saved to a file; note the paths. If a result comes back inline, save it to a .json file with the Write tool.
 c) get_values on the database for 'Prospect index'!A2:G and 'Small locals (LM-3, LM-4)'!C2:M (saved to files the same way).
@@ -111,7 +111,7 @@ e) Safety check: get_values 'Contacts & pipeline'!A2:A and count the current rec
 f) Run sha256sum on contacts.xlsx and upload it with Google Drive create_file: title "staging - contacts import", contentMimeType application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, base64Content "sha256:<hash>:<absolute path>". It converts to a Google Sheet. Get its first sheet's sheetId with get_spreadsheet, then copy_sheet_to_another_spreadsheet into the database (1c3j7reNvBeBTLUC9B_N2lUugvR1ZQnfju_DXv1QT1sk) and note the new sheetId.
 g) In ONE update_spreadsheet call on the database: if the new record count + 1 exceeds the row count of 'Contacts & pipeline' (sheetId 62730694), appendDimension the difference plus 500 rows; then updateCells with range rows 2 to the end, columns A to Q of sheetId 62730694 and fields "userEnteredValue" (clears old values); then copyPaste from the copied sheet (startRowIndex 1 to record count + 1, columns 0 to 17) to sheetId 62730694 startRowIndex 1, startColumnIndex 0, pasteType PASTE_VALUES; then deleteSheet the copied sheet. Never delete or rename 'Contacts & pipeline' itself; every team view looks it up by name.
 h) Trash the staging file with trash_file. Spot-check 3 rows of 'Contacts & pipeline' and 'Executive brief'!B5:B13 for errors (#REF!, #N/A, #VALUE!).
-Report: records imported, records matched to DOL filings, distinct unions matched, change vs. last week, and the count of 'Signed (NEP client)' records.
+Report: records imported, records matched to DOL filings, distinct unions matched, change vs. the previous run, and the count of 'Signed (NEP client)' records.
 
 master_import.py (write exactly as shown, between the markers, without the markers):
 -----BEGIN master_import.py-----
@@ -249,4 +249,4 @@ print(json.dumps({'records':len(recs),'tabs':len(T),'matched':sum(1 for r in rec
 
 STEP 8 (Friday), weekly digest. Read the Last updated columns (Union profiles AC, International profiles AC, Consolidation targets Y, International consolidation targets Y, Competitor watch K, Small locals N) and report what changed in the last 7 days: new and updated profiles by sector; new Tier 1 and Tier 2 consolidation targets (organization, sector, total addressable spend, named competitors); targets that changed tier or no longer qualify; new competitor relationships, calling out any union newly paying NEP Services or newly paying BMA Media Group, 617 Media Group, Union Labor Works or Union Up; and new small locals. Keep it to a short, scannable summary.
 
-END OF RUN. Summarize: weekday and sectors processed, OLMS 2026 filings received through what date, counts of rows added and updated per tab, any new Tier 1 targets or new NEP Services relationships, unmapped affiliate codes, and any errors. On Monday to Thursday, if nothing was added or updated, say "No new or updated filings for today's sectors."
+END OF RUN. Summarize: weekday and sectors processed, OLMS 2026 filings received through what date, counts of rows added and updated per tab, any new Tier 1 targets or new NEP Services relationships, unmapped affiliate codes, and any errors. Always report the Step 7B result (records imported, matched, or why it was skipped). On Monday to Thursday, if no filings were added or updated, say "No new or updated filings for today's sectors."

@@ -5,6 +5,7 @@ Historical record of how NEP Services built its union prospecting database (Nove
 **Owner:** Josh Friedrich, Director of Digital Advocacy, NEP Services
 **Built:** Nov. 11, 2026, with Claude (Cowork)
 **Status:** Live in Google Sheets; refreshed automatically each weekday
+**Last updated:** Nov. 12, 2026
 
 ## What it is
 
@@ -28,7 +29,8 @@ It is intentionally separate from HubSpot. HubSpot integration is deferred pendi
 | `docs/scheduled-refresh.md` | How the weekday refresh runs and its safeguards |
 | `docs/decisions-log.md` | Key decisions and the reasoning behind them |
 | `docs/build-history.md` | Build sequence, problems found and how they were fixed |
-| `docs/wish-list.md` | Snapshot of the Wish list tab at build |
+| `docs/wish-list.md` | Snapshot of the Wish list tab |
+| `docs/hot-list-design.md` | Design for the weekly hot list of buying signals (planned) |
 | `scripts/olms_build_all.js` | Browser-side builder that turns the OLMS export into profile and consolidation rows |
 | `scripts/master_import.py` | Normalizes and matches the master list into Contacts & pipeline |
 | `scheduled-task/weekday-refresh-prompt.txt` | Full instructions the scheduled task runs |
