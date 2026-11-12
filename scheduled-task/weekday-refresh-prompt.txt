@@ -1,0 +1,252 @@
+Weekday refresh of Josh Friedrich's Google Sheet "NEP Union Intelligence Database" (spreadsheet ID 1c3j7reNvBeBTLUC9B_N2lUugvR1ZQnfju_DXv1QT1sk), built from U.S. DOL OLMS yearly LM data. Run unattended: do not ask questions, make reasonable choices, and report at the end. Never delete rows in the data tabs. Never edit these tabs: Executive brief, Advocacy & political, Sales: websites & Connect Plus+, Print & magazine, Competitor takeaway, Sector summary, Prospect index, Lists, Affiliate map, Method & caveats (they are formulas or reference tables and update themselves). The only write to Contacts & pipeline is the Step 7B replacement.
+
+WHAT TODAY'S RUN DOES. Determine today's weekday in America/Chicago.
+- Monday to Thursday: refresh Union profiles, Consolidation targets and Competitor watch for the sectors whose "Update day" in the Affiliate map tab equals today (Steps 1 to 6).
+- Friday: refresh the Small locals (LM-3, LM-4) tab for all sectors (Steps 1, 2, 7), re-import the NEP master list into Contacts & pipeline (Step 7B), then write the weekly digest (Step 8).
+- Saturday or Sunday: do nothing and say so.
+
+TABS AND COLUMNS (match by header name if columns have moved, and report it):
+- "Affiliate map": A Affiliate code (OLMS), B Affiliate name, C Sector, D Update day.
+- "Union profiles" (A to AC): A Sector, B Level, C Affiliate, D Organization, E City, F State, G Data year, H Members, I Membership change vs. prior year, J Total receipts, K Next officer election, L Has comms staff, M Comms / marketing staff, N # comms staff, O Comms staff total pay, P Ad / media / digital spend, Q Print / publishing spend, R Ad + print total, S Ad/print tagged organizing or recruitment, T Political & lobbying total, U Ad/print within political schedule, V Top comms vendors, W Top technology vendors, X Competitors / platforms in use, Y Existing NEP client, Z Consolidation tier, AA OLMS file #, AB Period ending, AC Last updated.
+- "Consolidation targets" (A to Y): A Priority tier, B Sector, C Level, D Affiliate, E Organization, F City, G State, H Data year, I # services in use, J Website $, K Member comms $, L Advocacy/political $, M Social/digital/ads $, N Print/magazine $, O Total addressable $, P # vendors, Q Vendors by service, R Named competitors in use, S Has comms staff, T Existing NEP client, U Next officer election, V Membership change vs. prior year, W Members, X OLMS file #, Y Last updated.
+- "Competitor watch" (A to K): A Data year, B Sector, C Category, D Vendor, E Union, F Affiliate, G State, H Amount paid (itemized), I Top purposes, J OLMS file #, K Last updated.
+- "International profiles" (A to AC): same columns as Union profiles; holds only rows whose Level (B) is "International".
+- "International consolidation targets" (A to Y): same columns as Consolidation targets; holds only rows whose Level (C) is "International".
+- "Small locals (LM-3, LM-4)" (A to N): A Sector, B Affiliate, C Organization, D City, E State, F Form, G Data year, H Members, I Membership change vs. prior year, J Total receipts, K Total assets, L Next officer election, M OLMS file #, N Last updated.
+
+ROUTING: A row whose Level is "International" (profile column B, consolidation column C) goes only in the matching International tab; every other row goes only in Union profiles or Consolidation targets. When checking whether an OLMS file # already exists, look in both tabs of the pair and update the row where it is. Wherever Steps 3, 4 and 8 say Union profiles or Consolidation targets, apply the step to the International tab of the pair as well.
+
+TOOLS: The cloud container cannot reach olmsapps.dol.gov. Use the built-in browser (load all mcp__remote-devices__Claude_Browser__ tools with one ToolSearch). If the browser or site is unreachable, stop and report that. Use the Google Sheets connector (load via ToolSearch: get_values, get_spreadsheet, update_values, append_values, update_spreadsheet, copy_sheet_to_another_spreadsheet) and Google Drive (create_file, trash_file). When writing cells, use update_spreadsheet updateCells with typed values (stringValue / numberValue) so text like "2027-06" is not turned into a date. Write in batches of about 200 rows.
+
+STEP 1. Read 'Affiliate map'!A2:D500 and build MAP = {code: {name, sector}} and the list of today's sectors (Monday to Thursday). Report any affiliate code you meet in the OLMS data that is not in the map (it defaults to "Independent & other"); do not add it yourself.
+
+STEP 2. Open https://olmsapps.dol.gov/olpdr/ with preview_start (request_access with scope "site" if asked). With javascript_tool get the yearly download links for 'Year 2026' and 'Year 2025': [...document.querySelectorAll('a')].find(a=>a.textContent.trim()=='Year 2026').href (last known: 2026 = https://olmsapps.dol.gov/olpdr/GetYearlyFileServlet?report=gOgy, 2025 = ...report=gOgt). Then run in javascript_tool (replace URL26, URL25, MAPJSON with the MAP object as JSON, and SECTORS with a JSON array of today's sectors, or null on Friday):
+
+await new Promise((res,rej)=>{if(window.JSZip)return res();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=res;s.onerror=()=>rej('jszip blocked');document.head.appendChild(s)});
+const PZ=(z)=>async(pref)=>{const n=Object.keys(z.files).find(n=>n.startsWith(pref+'_data'));const s=await z.file(n).async('string');const L=s.split(/\r?\n/);const h=L[0].split('|').map(x=>x.trim());const rows=[];let buf='';for(let i=1;i<L.length;i++){buf=buf?buf+' '+L[i]:L[i];const v=buf.split('|');if(v.length<h.length)continue;const o={};h.forEach((k,j)=>o[k]=v[j]);rows.push(o);buf=''}return rows};
+window._buildAll=BUILD_FUNCTION;
+const P=PZ(await JSZip.loadAsync(await (await fetch('URL26')).arrayBuffer()));
+const lm25=await PZ(await JSZip.loadAsync(await (await fetch('URL25')).arrayBuffer()))('lm_data');
+const lm26=await P('lm_data');
+window._R=_buildAll(2026,lm26,await P('ar_disbursements_genrl'),await P('ar_payer_payee'),await P('ar_disbursements_emp_off'),await P('ar_disbursements_total'),lm25,MAPJSON,SECTORS);
+({profiles:Object.keys(_R.profiles).length,cons:Object.keys(_R.cons).length,comp:_R.comp.length,small:Object.keys(_R.small).length,latestReceived:lm26.map(r=>r.RECEIVE_DATE).sort().pop(),unmapped:[...new Set(lm26.map(r=>r.AFF_ABBR).filter(c=>!MAPJSON[c]))]})
+
+where BUILD_FUNCTION is exactly this function (paste it verbatim):
+
+function(year,lm,gen,ppl,emp,totl,prevLm,MAP,onlySectors){
+const AN=(c,u)=>(MAP[c]&&MAP[c].name)||c;
+const secOf=(r)=>{const u=(r.UNIT_NAME||'');if(r.AFF_ABBR=='SMART'&&/TRANSPORT|GENERAL COMMITTEE|LEGISLATIVE BOARD|RAIL|\bRR\b|\bGCA\b|GO-|LO-|YARDMASTER|BUS\b|TRANSIT/i.test(u))return 'Transportation';return (MAP[r.AFF_ABBR]&&MAP[r.AFF_ABBR].sector)||'Independent & other'};
+const latest=(rows,pred)=>{const b={};rows.filter(pred).forEach(r=>{const x=b[r.F_NUM];if(!x||r.RECEIVE_DATE>x.RECEIVE_DATE)b[r.F_NUM]=r});return b};
+const live=r=>r.TERMINATE!='T';
+const lm2=latest(lm,r=>r.FORM_TYPE=='LM-2'&&live(r));const sm=latest(lm,r=>r.FORM_TYPE!='LM-2'&&live(r)&&!lm2[r.F_NUM]);const prev=latest(prevLm,r=>true);
+const keep=r=>!onlySectors||onlySectors.includes(secOf(r));
+const tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+const orgName=r=>{if(r.AFF_ABBR=='UNAFF')return tc(r.UNION_NAME.trim());const u=(r.UNIT_NAME||'').trim();const d=[r.DESIG_NAME,r.DESIG_NUM,r.DESIG_SUF].filter(x=>x&&x.trim()).join(' ').trim();let o=(r.AFF_ABBR+' '+d).trim();if(u&&!d.toUpperCase().includes(u.toUpperCase()))o+=' ('+tc(u)+')';return o.replace(/\s+/g,' ').replace(' LU ',' Local ').replace(' NHQ',' International')};
+const levelOf=r=>{if(r.AFF_ABBR=='UNAFF')return 'Independent';const p=((r.DESIG_NAME||'').trim().split(' ')[0]||'').toUpperCase();return ({NHQ:'International',LU:'Local',LG:'Local',LL:'Local',BR:'Local',CH:'Local',SLG:'Local',UNIT:'Local',BCTC:'Building trades council'})[p]||(p?'Council / region':'Local')};
+const cityOf=r=>{const c=(r.CITY||'').trim();return c==c.toUpperCase()?tc(c):c};
+const elec=r=>{const ne=(r.NEXT_ELECTION||'').trim();const m=ne.match(/^(\d{2})\/(\d{4})/);return m?m[2]+'-'+m[1]:ne};
+const mchg=(r,f)=>{const pv=prev[f];return pv&&pv.MEMBERS!==''&&r.MEMBERS!==''&&pv.MEMBERS!=null?(+r.MEMBERS)-(+pv.MEMBERS):''};
+const STAFF=/COMMUNICAT|COMUNICAT|\bMEDIA|MULTIMEDIA|MARKETING|PUBLIC RELATIONS|\bPR &|& PR\b|DIGITAL|SOCIAL MEDIA|^GRAPHIC DESIGN|GRAPHIC DESIGNER|VIDEO|PUBLICATION|EDITOR|PUBLIC AFFAIRS|CONTENT|WEB ?MASTER|WEB COORD|WEB SERVICES|PHOTOGRAPH|PRESS SEC|BRAND|CREATIVE|LEAD DESIGNER|OUTREACH/;
+const STAFF_X=/GRAPHIC PKAG|INFORMATION OFFICER|INSTRUCTIONAL|SOCIAL HALL|DEVELOPER|DVLPR|WEB ADMIN|INTERMEDIATE|OFFICE CLERK/;
+const AD=/ADVERTIS|\bADS?\b|MARKETING|\bMEDIA|BILLBOARD|RADIO|TELEVISION|\bTV\b|DIGITAL MARKETING|DIGITAL AD|DIGITAL MEDIA|SOCIAL MEDIA|PROMOTION|BRANDING|PUBLIC RELATIONS|WEBSITE|WEB DESIGN|VIDEO PROD|VIDEOGRAPH|GRAPHIC DESIGN|TEXTING|\bSMS\b|COMMUNICATIONS CONSULT|CREATIVE|GEOFENC|STREAMING/;
+const PRINT=/PRINTING|PRINTER|PUBLISH|PUBLICATION|NEWSLETTER|MAGAZINE|NEWSPAPER|MAILER|DIRECT MAIL|BANNER|YARD SIGN/;
+const ORG=/RECRUIT|ORGANIZ|OUTREACH|MARKET RECOVERY|\bMRP\b|JOB TARGET|APPRENTICE|MEMBERSHIP DRIVE|NON-?UNION|UNION AWARENESS/;
+const TECH=/SOFTWARE|TECHNOLOG|\bTECH SUPPORT|\bIT (SERVICES|SUPPORT|CONSULT|COMPANY|EXPENSE|MANAGED)|INFORMATION TECHNOLOGY|COMPUTER|CLOUD|\bSAAS\b|WEB HOSTING|HOSTING SERV|DATABASE|DATA PROCESSING|DATA SECURITY|CYBERSECURITY|MICROSOFT|SALESFORCE|ADOBE|GOOGLE WORKSPACE|\bZOOM\b|AMAZON WEB|\bAWS\b|\bCDW|SOFTCHOICE|INTERNET|TELECOM|TELEPHONE|PHONE SYSTEM|\bVOIP\b|RING ?CENTRAL|\bSERVERS?\b|MANAGED (IT|NETWORK)|NETWORK (SERVICES|EQUIPMENT|SECURITY)|UNION ?WARE|UNION ?TRACK|UNION ?IMPACT|LINKED ?UNION|UNIONNET|MEMBERSHIP (SOFTWARE|SYSTEM)|DIGITAL ORGANIZING|OFFICE 365|DOCUSIGN|QUICKBOOKS|INTUIT|SOFTWARE LICENS/;
+const TX=/INSURANCE|\bRENT\b|PROPERTY|CONTRACTOR|EVENT|UTILIT|MARKET RECOVERY|JOB TARGET|CONTRIBUTION|AFFILIATE|JANITOR|ARCHITECT|COLLEGE|SCHOLARSHIP|MEMBERS WELFARE|\bLLP\b|\bCPA\b|ACCOUNTING|AUDIT|WELFARE|RETIREMENT|PENSION|\bLOCAL \d|\bLU \d|ELECTRIC\b|SHEET METAL|\bBANK\b|HEALTHCARE|CITY OF|INSTITUTE OF TECHNOLOGY|FLOORING|ROOFING/;
+const MERCH=/PROMOTIONAL ITEM|PROMO ITEM|PROMOTIONAL PRODUCT|PROMOTIONAL MERCH|PROMOTIONAL SUPPL|PROMOTIONAL APPAREL|APPAREL|T-?SHIRT|\bSHIRTS?\b|EMBROIDER|SCREEN ?PRINT|SILK ?SCREEN|MERCHANDISE|\bGIFTS?\b|JACKET|\bHATS?\b|SWAG|STITCH|TEES\b|UNIFORM|AWARDS|TROPH|PICNIC|PARTY|BANQUET|DINNER|GOLF|TICKET|SUITE|HOSPITALITY|CATERING|FOOD|SWEET|RESTAURANT|BAKERY|ROYALT|LICENSING|LICENSE FEE|RESIDUAL|PLAYER|ENDORSEMENT|APPEARANCE/;
+const PAYX=/\bLOCAL\b|\bLU\b|LODGE|COUNCIL|DISTRICT|UNION OF|BROTHERHOOD|FEDERATION|AFL-?CIO|COMMITTEE|FOR (CONGRESS|SENATE|GOVERNOR|MAYOR|ASSEMBLY|STATE)|FRIENDS OF|\bPAC\b|INSTITUTE|FOUNDATION|PARTY\b|DEMOCRATIC|REPUBLICAN|CAMPAIGN FUND|BALLOT|SCHOLARSHIP|CHARIT|HELPING HAND|TRUST FUND|JATC|AIR ?LINES|AIRWAYS|FEDERAL EXPRESS|\bFEDEX\b/;
+const POLX=/SUBSCRIPTION|LOBBY|CONTRIBUTION|DONATION|PAC\b|DUES|PER CAPITA|LEGAL|ATTORNEY|LAW FIRM/;
+const CWEB=/WEBSITE|WEB ?SITE|WEB DESIGN|WEB DEVELOP|WEB HOST|WEBPAGE|WEB PAGE|DOMAIN|LINKED ?UNION|UNION ?ACTIVE|VELARIUM|MOBILE APP|\bAPP DEVELOP|SQUARESPACE|WIX|WORDPRESS/;
+const CMEM=/UNION ?WARE|UNION ?TRACK|UNION ?IMPACT|MEMBER ?TRAK|UNIONNET|RCS UNION|ROBERTS CUSTOM|BROADSTRIPES|\bHUSTLE\b|TEXTING|TEXT MESSAG|MASS TEXT|\bSMS\b|EMAIL (SERVICE|MARKETING|BLAST|PLATFORM)|MAILCHIMP|CONSTANT CONTACT|ONE CALL NOW|ROBO ?CALL|PHONE BANK|MEMBER (COMMUNICATION|ENGAGEMENT|APP|PORTAL|MESSAG)|MASS NOTIFICATION|UNION ?MAP|CALL ?HUB|PEERLY|TWILIO|NATION ?BUILDER|MEMBERSHIP (SOFTWARE|SYSTEM|DATABASE)/;
+const CADV=/EVERY ?ACTION|NGP ?VAN|BONTERRA|ACTION NETWORK|QUORUM|FISCAL ?NOTE|VOTER ?VOICE|PHONE2ACTION|COUNTABLE|CATALIST|SCALE TO WIN|GOTV|GET OUT THE VOTE|ISSUE ADVOCACY|ADVOCACY CAMPAIGN|VOTER (CONTACT|DATA|FILE|OUTREACH|REGISTRATION)|POLITICAL (ADVERTIS|MAIL|CONSULT|COMMUNICAT|DIGITAL)|CAMPAIGN (ADVERTIS|MAIL|CONSULT)/;
+const CAD=/ADVERTIS|\bADS?\b|MARKETING|\bMEDIA|BILLBOARD|RADIO|TELEVISION|\bTV\b|DIGITAL|SOCIAL MEDIA|PROMOTION|BRANDING|PUBLIC RELATIONS|VIDEO|GRAPHIC DESIGN|COMMUNICATIONS CONSULT|CREATIVE|GEOFENC|STREAMING|SPONSORSHIP|PUBLICITY/;
+const CPRINT=/PRINTING|PRINTER|\bPRESS\b|PUBLISH|PUBLICATION|NEWSLETTER|MAGAZINE|NEWSPAPER|JOURNAL|MAILER|DIRECT MAIL|MAILING SERV|BANNER|YARD SIGN|POSTCARD/;
+const VEND=[['NEP Services (NEP)','NEP Services',/NEP SERVICES|NEW EQUITY PROD/],['Agency','BMA Media Group',/BMA MEDIA/],['Agency','617 Media Group',/617 ?MEDIA/],['Agency','Berlin Rosen',/BERLIN ?ROSEN/],['Agency','Union Labor Works',/UNION LABOR WORKS/],['Agency','Union Up',/UNION ?UP\b|UNIONUP/],['Agency','Strategus',/STRATEGUS/],['Agency','Oswego Creative',/OSWEGO CREATIVE/],['Agency','Faceless Media',/FACELESS MEDIA/],['Agency','Moxie Strategies',/MOXIE STRAT/],['Agency','Singer Associates',/SINGER ASSOC/],['Agency','Bleiweiss Communications',/BLEIWEISS/],['Agency','M+R Strategic Services',/M\s?\+\s?R STRAT/],['Agency','GMMB',/\bGMMB\b/],['Agency','SKDK',/\bSKDK|SKD KNICKERBOCKER/],['Agency','Blue State',/BLUE STATE/],['Agency','Vantage Public Affairs',/VANTAGE PUBLIC/],['Member platform / database','UnionWare',/UNION ?WARE/],['Member platform / database','RCS Union Software',/RCS UNION|ROBERTS CUSTOM/],['Member platform / database','UnionTrack',/UNION ?TRACK/],['Member platform / database','Union Impact',/UNION ?IMPACT/],['Member platform / database','LinkedUnion',/LINKED ?UNION/],['Member platform / database','UnionActive',/UNION ?ACTIVE/],['Member platform / database','MemberTrak',/MEMBER ?TRAK/],['Member platform / database','UnionMap',/UNION ?MAP/],['Member platform / database','Broadstripes',/BROADSTRIPES/],['Member platform / database','NationBuilder',/NATION ?BUILDER/],['Member platform / database','Salesforce',/SALESFORCE/],['Advocacy / texting tool','Hustle',/\bHUSTLE\b/],['Advocacy / texting tool','EveryAction / NGP VAN / Bonterra',/EVERY ?ACTION|NGP ?VAN|BONTERRA/],['Advocacy / texting tool','Action Network',/ACTION NETWORK/],['Advocacy / texting tool','Quorum',/QUORUM ANALYTICS|\bQUORUM\b/],['Advocacy / texting tool','FiscalNote / VoterVoice',/FISCAL ?NOTE|VOTER ?VOICE/],['Advocacy / texting tool','Phone2Action / Countable',/PHONE2ACTION|COUNTABLE/],['Advocacy / texting tool','Upland / Mobile Commons',/UPLAND|MOBILE COMMONS/],['Advocacy / texting tool','CallHub',/CALL ?HUB/],['Advocacy / texting tool','Peerly',/PEERLY/],['Advocacy / texting tool','Scale to Win',/SCALE TO WIN/],['Advocacy / texting tool','Catalist',/CATALIST/],['Advocacy / texting tool','Twilio',/TWILIO/],['Advocacy / texting tool','Mailchimp',/MAILCHIMP/],['Advocacy / texting tool','Constant Contact',/CONSTANT CONTACT/],['Advocacy / texting tool','One Call Now',/ONE CALL NOW/],['Print','Kelly Press',/KELLY PRESS/],['Print','Union Graphics',/UNION GRAPHICS/],['Sports sponsorship / ads','Professional Sports Publications',/PROFESSIONAL SPORTS PUB/],['Sports sponsorship / ads','Learfield / Playfly',/LEARFIELD|PLAYFLY/],['Media monitoring','Meltwater',/MELTWATER/],['Media monitoring','Cision',/CISION/]];
+const norm=s=>s.toUpperCase().replace(/[.,]/g,'').replace(/\b(INC|LLC|CORP|CORPORATION|CO|LTD|THE|DBA)\b/g,'').replace(/\s+/g,' ').trim();
+const top=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);const fmt=a=>a.slice(0,4).map(([k,v])=>k+' ($'+Math.round(v/1000)+'K)').join('; ');
+const pp={};ppl.forEach(r=>pp[r.PAYER_PAYEE_ID]=r);const tot={};totl.forEach(r=>tot[r.RPT_ID]=r);
+const U={};const byR={};for(const [f,r] of Object.entries(lm2)){if(!keep(r))continue;byR[r.RPT_ID]=f;U[f]={r,staff:[],pay:0,ad:0,pr:0,org:0,polc:0,vend:{},tech:{},comp:{},compP:{},b:{web:{},mem:{},adv:{},dig:{},prt:{}}}}
+for(const e of emp){const f=byR[e.RPT_ID];if(!f)continue;const s=U[f];const ti=(e.TITLE||'').toUpperCase().trim();if(STAFF.test(ti)&&!STAFF_X.test(ti)){s.staff.push(tc(ti+' ('+(e.FIRST_NAME||'').trim()+' '+(e.LAST_NAME||'').trim()+')'));s.pay+=+e.TOTAL||0}}
+for(const g of gen){const f=byR[g.RPT_ID];if(!f)continue;const s=U[f];const v=pp[g.PAYER_PAYEE_ID]||{};const nm=(v.NAME||'?').trim();const NM=nm.toUpperCase();const txt=((g.PURPOSE||'')+' | '+(v.TYPE_OR_CLASS||'')+' | '+nm).toUpperCase();const a=+g.AMOUNT||0;
+ const roy=/ROYALT|GROUP LICENS|LICENSING|RESIDUAL|PLAYER/.test(txt);const isAd=!roy&&AD.test(txt),isPr=!roy&&!isAd&&PRINT.test(txt);if(isAd)s.ad+=a;if(isPr)s.pr+=a;if((isAd||isPr)&&ORG.test(txt))s.org+=a;if((isAd||isPr)&&g.DISBURSEMENT_TYPE=='502')s.polc+=a;if(isAd||isPr){s.vend[nm]=(s.vend[nm]||0)+a}else if(TECH.test(txt)&&!TX.test(txt)){s.tech[nm]=(s.tech[nm]||0)+a}
+ for(const [cat,lab,re] of VEND){if(re.test(NM)){s.comp[lab]=s.comp[lab]||{cat,amt:0,purp:{}};s.comp[lab].amt+=a;const p=(g.PURPOSE||'').trim();if(p)s.comp[lab].purp[p]=(s.comp[lab].purp[p]||0)+1;break}}
+ if(MERCH.test(txt)||PAYX.test(NM))continue;let b=null;
+ if(CADV.test(txt))b='adv';else if(g.DISBURSEMENT_TYPE=='502'&&!POLX.test(txt)&&(CAD.test(txt)||CPRINT.test(txt)||CWEB.test(txt)||CMEM.test(txt)))b='adv';
+ else if(CWEB.test(txt))b='web';else if(CMEM.test(txt))b='mem';else if(CPRINT.test(txt))b='prt';else if(CAD.test(txt))b='dig';
+ if(b){const k=norm(nm);s.b[b][k]=(s.b[b][k]||[nm,0]);s.b[b][k][1]+=a}}
+const LBL={web:'Website',mem:'Member comms',adv:'Advocacy/political',dig:'Social/digital/ads',prt:'Print/magazine'};
+const profiles={},cons={},comp=[],small={};
+for(const [f,s] of Object.entries(U)){const r=s.r;const t=tot[r.RPT_ID]||{};const st=[...new Set(s.staff)];const tv=top(s.vend);const topC=new Set(tv.slice(0,4).map(x=>x[0]));const nep=!!s.comp['NEP Services'];
+ const compStr=top(Object.fromEntries(Object.entries(s.comp).map(([l,o])=>[l,o.amt]))).map(([l,a])=>l+' ($'+Math.round(a/1000)+'K)').join('; ');
+ for(const [lab,o] of Object.entries(s.comp))comp.push([year,secOf(r),o.cat,lab,orgName(r),AN(r.AFF_ABBR),(r.STATE||'').trim(),o.amt,top(o.purp).slice(0,3).map(x=>x[0]).join('; '),+f]);
+ const sums={},vset=new Set(),parts=[];for(const k of ['web','mem','adv','dig','prt']){const es=Object.entries(s.b[k]);sums[k]=es.reduce((x,[,v])=>x+v[1],0);es.forEach(([n])=>vset.add(n));if(es.length)parts.push(LBL[k]+': '+es.sort((a,b)=>b[1][1]-a[1][1]).slice(0,3).map(([,v])=>v[0]+' ($'+Math.round(v[1]/1000)+'K)').join(', '))}
+ const svc=['web','mem','adv','dig','prt'].filter(k=>sums[k]>0).length;const total=Object.values(sums).reduce((a,b)=>a+b,0);
+ let tier='';if(svc>=3&&vset.size>=3)tier=nep?'Existing NEP client: expand':(svc>=4&&total>=150000?'Tier 1':(total>=50000?'Tier 2':'Tier 3'));
+ profiles[f]=[secOf(r),levelOf(r),AN(r.AFF_ABBR),orgName(r),cityOf(r),(r.STATE||'').trim(),year,+r.MEMBERS||0,mchg(r,f),+r.TTL_RECEIPTS||0,elec(r),st.length?'Yes':'No',st.join('; '),st.length,s.pay,s.ad,s.pr,s.ad+s.pr,s.org,+t.POLITICAL||0,s.polc,fmt(tv),fmt(top(s.tech).filter(([k])=>!topC.has(k))),compStr,nep?'Yes':'No',tier,+f,r.PD_COVERED_TO];
+ if(tier)cons[f]=[tier,secOf(r),levelOf(r),AN(r.AFF_ABBR),orgName(r),cityOf(r),(r.STATE||'').trim(),year,svc,sums.web,sums.mem,sums.adv,sums.dig,sums.prt,total,vset.size,parts.join(' | '),Object.entries(s.comp).filter(([l])=>l!='NEP Services').sort((a,b)=>b[1].amt-a[1].amt).map(([l,o])=>l+' ($'+Math.round(o.amt/1000)+'K)').join('; '),st.length?'Yes':'No',nep?'Yes':'No',elec(r),mchg(r,f),+r.MEMBERS||0,+f]}
+for(const [f,r] of Object.entries(sm)){if(!keep(r))continue;small[f]=[secOf(r),AN(r.AFF_ABBR),orgName(r),cityOf(r),(r.STATE||'').trim(),r.FORM_TYPE,year,+r.MEMBERS||0,mchg(r,f),+r.TTL_RECEIPTS||0,+r.TTL_ASSETS||0,elec(r),+f]}
+return {profiles,cons,comp,small,lm2Files:Object.keys(lm2).filter(f=>keep(lm2[f])).map(Number),smallFiles:Object.keys(sm).filter(f=>keep(sm[f])).map(Number)}}
+
+Retrieve results with JSON.stringify(window._R.profiles), JSON.stringify(window._R.cons), JSON.stringify(window._R.comp), JSON.stringify(window._R.small) and JSON.stringify(window._R.lm2Files). The bridge truncates very large outputs (about 250K characters): if a result is too large, retrieve it in slices (for example JSON.stringify(...).slice(0,200000), then the next 200000) and reassemble with python from the saved files. Profile rows are columns A to AB; consolidation rows are A to X; competitor rows are A to J; small-local rows are A to M.
+
+STEP 3 (Mon to Thu), Union profiles. Read the OLMS file # column (AA) and the data columns of 'Union profiles'. For each row in _R.profiles keyed by OLMS file #: if not in the tab, append it with AC = today's date (YYYY-MM-DD, as a date value); if present and any value in A to AB differs (normalize: strip $ , and leading + from numbers; blank equals empty), overwrite A to AB in place and set AC to today; otherwise leave it.
+
+STEP 4 (Mon to Thu), Consolidation targets, keyed by OLMS file # (X):
+- Entries in _R.cons not in the tab: append A to X with Y = today.
+- Entries already in the tab whose A to X differ (including a 2025 row now replaced by the union's 2026 report): overwrite A to X and set Y to today.
+- Tab rows in today's sectors whose file # is in _R.lm2Files but not in _R.cons, and whose Priority tier is not already "No longer qualifies (2026 report)": set A to that text, H to 2026, Y to today. Leave the other cells.
+
+STEP 5 (Mon to Thu), Competitor watch, keyed by Data year 2026 + Vendor (D) + OLMS file # (J): append rows not present (A to J, K = today); for rows present with a different amount (H) or purposes (I), overwrite H and I and set K to today. Never touch Data year 2025 rows.
+
+STEP 6 (Mon to Thu). Give new rows the formats of row 2 on each tab: currency $#,##0, number #,##0, change +#,##0;-#,##0;0, date yyyy-mm-dd, and wrapped text on long text columns. Read back a sample of changed rows to verify.
+
+STEP 7 (Friday), Small locals, keyed by OLMS file # (M): append rows from _R.small not in the tab (A to M, N = today); overwrite A to M and set N to today where values differ. Apply row 2's formats to new rows and verify a sample.
+
+STEP 7B (Friday), NEP master list re-import. The NEP master list is Josh's Google Sheet "MASTER Union Database" (ID 1XYEUd1z1vyLwPK0rI_Cp35YN5-Qnyp_iQ4AF3BwKlkk). Read it only; never edit it.
+a) get_spreadsheet on it with fields ["sheets.properties.title"] to list the tab titles.
+b) Split the titles into three roughly equal groups. For each group call get_spreadsheet with includeGridData true, fields ["sheets.properties.title","sheets.data.rowData.values.formattedValue"] and ranges like "'Tab name'!A1:T" (double any apostrophe inside a tab name). Each result is large and is saved to a file; note the paths. If a result comes back inline, save it to a .json file with the Write tool.
+c) get_values on the database for 'Prospect index'!A2:G and 'Small locals (LM-3, LM-4)'!C2:M (saved to files the same way).
+d) Write the script below verbatim to master_import.py in your scratchpad and run: python3 -I master_import.py <scratchpad>/contacts.xlsx <Prospect index file> <Small locals file> <tab file 1> <tab file 2> <tab file 3>. It prints JSON stats (records, tabs, matched, distinct_unions, confidence, stages).
+e) Safety check: get_values 'Contacts & pipeline'!A2:A and count the current records. If the script errors, or the new record count is below 80% of the current count, replace nothing, report the problem and skip the rest of Step 7B.
+f) Run sha256sum on contacts.xlsx and upload it with Google Drive create_file: title "staging - contacts import", contentMimeType application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, base64Content "sha256:<hash>:<absolute path>". It converts to a Google Sheet. Get its first sheet's sheetId with get_spreadsheet, then copy_sheet_to_another_spreadsheet into the database (1c3j7reNvBeBTLUC9B_N2lUugvR1ZQnfju_DXv1QT1sk) and note the new sheetId.
+g) In ONE update_spreadsheet call on the database: if the new record count + 1 exceeds the row count of 'Contacts & pipeline' (sheetId 62730694), appendDimension the difference plus 500 rows; then updateCells with range rows 2 to the end, columns A to Q of sheetId 62730694 and fields "userEnteredValue" (clears old values); then copyPaste from the copied sheet (startRowIndex 1 to record count + 1, columns 0 to 17) to sheetId 62730694 startRowIndex 1, startColumnIndex 0, pasteType PASTE_VALUES; then deleteSheet the copied sheet. Never delete or rename 'Contacts & pipeline' itself; every team view looks it up by name.
+h) Trash the staging file with trash_file. Spot-check 3 rows of 'Contacts & pipeline' and 'Executive brief'!B5:B13 for errors (#REF!, #N/A, #VALUE!).
+Report: records imported, records matched to DOL filings, distinct unions matched, change vs. last week, and the count of 'Signed (NEP client)' records.
+
+master_import.py (write exactly as shown, between the markers, without the markers):
+-----BEGIN master_import.py-----
+import json,re,sys,collections
+from openpyxl import Workbook
+OUT,IL2,ISM=sys.argv[1],sys.argv[2],sys.argv[3];TABF=sys.argv[4:]
+def jl(p):
+    j=json.load(open(p))
+    return j.get('content',j) if isinstance(j,dict) else j
+T={}
+for f in TABF:
+    for s in jl(f)['sheets']:
+        rows=[[(v.get('formattedValue') or '').strip() for v in rd.get('values',[])] for rd in (s.get('data') or [{}])[0].get('rowData',[])]
+        T[s['properties']['title']]=rows
+SKIP={'Sunday Event ATTENDEES','HSR Conference','DEMS','VENDORS','PRICING Calculator'}
+STAGES={'SIGNED':'Signed (NEP client)','QUOTES DELIVERED':'Quote delivered','PROSPECTS':'Prospect (in contact)','READY TO CALL':'Ready to call','NOT READY TO CALL':'Not ready to call','NEEDS MORE INFO':'Needs more info','DEFUNCT':'Defunct'}
+TABAFF={'IBEW':'IBEW','UA':'PPF','SMART':'SMART','Teamsters':'IBT','Bricklayers':'BAC','IUOE':'IUOE','Ironworkers':'BSOIW','IUPAT':'PAT','CARPENTERS':'CJA','LIUNA':'LIUNA','Cement Masons':'OPCM','IUEC':'IUEC','CWA':'CWA','SMART TD':'SMART','IATSE':'IATSE','IBEW/NABTU 26':'IBEW','TWU':'TWU','ROOF':'RWAW','NTEU':'NTEU','MUSICIANS':'AFM','NPMHU':'NPMHU','UFCW':'UFCW','UNITE HERE':'UNITHE','BOIL':'BBF','IFPTE':'IFPTE','ATU':'ATU','APWU':'APWU','AFSCME':'AFSCME','RWDSU':'RWDSU','CSEA':'AFSCME','NALC':'NALC','Longshoremen':'ILA','TEAMSTER RAIL':'IBT','SEIU':'SEIU','Rural Letter Carriers':'RLCA','Postal Supervisors':'NAPS','AFSA':'AFSA','AFGE':'AFGE','NFFE':'NFFE','UAW':'UAW','IAFF':'IAFF','OPEIU':'OPEIU','UWUA':'UWUA','NATCA':'NATCA','ILWU':'ILWU','STEEL':'USW','INSUL':'HFIA','IAMAW':'IAM','BRS Rail':'BRS','BCTGM':'BCTGMI','BWME Rail':'BMWE','NWSEO':'NWSEO','MINE WORKERS':'UMW','IBEW CLIENTS':'IBEW','TEACHERS':'AFT'}
+SYN=[(r'^IBEW\b','IBEW'),(r'^(UA|U\.A\.|PLUMBERS|PIPEFITTERS|STEAMFITTERS)\b','PPF'),(r'^SMART\b|^SHEET METAL','SMART'),(r'^(TEAMSTERS|IBT)\b','IBT'),(r'^(BAC|BRICKLAYERS)\b','BAC'),(r'^(IUOE|OPERATING ENGINEERS)\b','IUOE'),(r'^(IRONWORKERS|IRON WORKERS|BSOIW)\b','BSOIW'),(r'^(IUPAT|PAINTERS|DC \d|DISTRICT COUNCIL \d)','PAT'),(r'^(CARPENTERS|UBC|MILLWRIGHTS)\b','CJA'),(r'^(LIUNA|LABORERS)\b','LIUNA'),(r'^(OPCMIA|OPCM|CEMENT MASONS|PLASTERERS)\b','OPCM'),(r'^IUEC\b|^ELEVATOR','IUEC'),(r'^CWA\b','CWA'),(r'^IATSE\b','IATSE'),(r'^TWU\b','TWU'),(r'^(ROOFERS|RWAW)\b','RWAW'),(r'^NTEU\b','NTEU'),(r'^(AFM|MUSICIANS)\b','AFM'),(r'^NPMHU\b','NPMHU'),(r'^UFCW\b','UFCW'),(r'^UNITE HERE\b','UNITHE'),(r'^(BOILERMAKERS|IBB)\b','BBF'),(r'^IFPTE\b','IFPTE'),(r'^ATU\b','ATU'),(r'^APWU\b','APWU'),(r'^AFSCME\b','AFSCME'),(r'^RWDSU\b','RWDSU'),(r'^NALC\b','NALC'),(r'^ILA\b','ILA'),(r'^SEIU\b','SEIU'),(r'^AFGE\b','AFGE'),(r'^NFFE\b','NFFE'),(r'^UAW\b','UAW'),(r'^IAFF\b','IAFF'),(r'^OPEIU\b','OPEIU'),(r'^UWUA\b','UWUA'),(r'^NATCA\b','NATCA'),(r'^ILWU\b','ILWU'),(r'^(USW|STEELWORKERS)\b','USW'),(r'^(HFIA|INSULATORS)\b','HFIA'),(r'^(IAM|IAMAW|MACHINISTS)\b','IAM'),(r'^BRS\b','BRS'),(r'^BCTGM\b','BCTGMI'),(r'^(BMWE|BMWED)\b','BMWE'),(r'^NWSEO\b','NWSEO'),(r'^(UMWA|UMW)\b','UMW'),(r'^(BLET|BLE)\b','BLE'),(r'^AFT\b','AFT'),(r'^NEA\b','NEA'),(r'^(SAG|SAG-AFTRA)','SAGAFTRA'),(r'^AFA\b','AFA'),(r'^MEBA\b','MEBA'),(r'^(BCTC|.*BUILDING (AND|&) CONSTRUCTION TRADES|.*BUILDING TRADES)','BCTD'),(r'\bFOP\b|FRATERNAL ORDER OF POLICE','NFOP')]
+def affof(n,tab):
+    N=n.upper().strip()
+    for rx,c in SYN:
+        if re.search(rx,N): return c
+    return TABAFF.get(tab,'')
+def numof(n,aff=''):
+    if aff=='USW':
+        m=re.search(r'\b\d{1,2}-0*(\d+)\b',n)
+        if m: return int(m.group(1))
+    m=re.search(r'(?:LOCAL|LU|LODGE|BRANCH|DIVISION|DIV\.?|CHAPTER|COUNCIL|DC|NO\.?|#)\s*-?\s*(\d+)',n,re.I)
+    if m: return int(m.group(1))
+    m=re.search(r'\b(\d{1,5})\b',n); return int(m.group(1)) if m else None
+KEYS={'name':['LOCAL','UNION','PBA LOCAL','ORGANIZATION'],'city':['CITY','CITY/TWP/BOROUGH'],'state':['STATE'],'zip':['ZIP'],'phone':['PHONE'],'email':['E-MAIL','EMAIL'],'web':['WEBSITE'],'prov':['PROVIDER','PROVIDER? MAIL?'],'notes':['NOTES'],'rep':['REP','FOLLOW UP BY']}
+CK=['CONTACT','BUSINESS MGR','PRESIDENT'];FN=['BM FIRST','CONTACT FIRST','FIRST'];LN=['BM LAST','CONTACT LAST','LAST']
+REPS={'SCOTT','CHRISTINE','STAN','KEVIN','NIKKI','STACEY','MARK','MAHER','JULIAN','SEAN','KWH'}
+PROV=[('UNIONACTIVE','UnionActive'),('LINKEDUNION','LinkedUnion'),('UNIONLABORWORKS','Union Labor Works'),('ULW','Union Labor Works'),('NEP','NEP'),('SELF','Self-managed'),('WEBRAND','WeBrand Digital'),('HARBORSIDE','Harborside'),('BMA','BMA Media Group'),('WORDPRESS','WordPress'),('WIX','Wix'),('SQUARESPACE','Squarespace'),('GODADDY','GoDaddy'),('UNIONTRACK','UnionTrack'),('UNIONWARE','UnionWare'),('UNIONCENTRIC','UnionCentrics'),('WEBCONNECTIVITY','Web Connectivity')]
+def prov(p,rep):
+    if not p or p.strip().upper() in ('PRESIDENT','N/A','NA','0','LOCAL','SMART','NONE','-','?','TBD'): return '',rep
+    if p.upper().strip() in REPS: return '',(rep or p.strip().title())
+    P=p.upper().replace(' ','')
+    for k,v in PROV:
+        if k in P: return v,rep
+    if re.search(r'https?://|www\.',p): return '',rep
+    return p.strip(),rep
+recs=[]
+for tab,rows in T.items():
+    if tab in SKIP: continue
+    hi=None
+    for i,r in enumerate(rows[:6]):
+        u=[c.upper() for c in r]
+        if any(k in u for k in KEYS['name']) and ('STATE' in u or 'ADDRESS 1' in u or 'WEBSITE' in u): hi=i;break
+    if hi is None: H={'aff':0,'name':1,'city':4,'state':5,'zip':6,'contact':7};start=0
+    else:
+        u=[c.upper() for c in rows[hi]];H={}
+        for k,opts in KEYS.items():
+            for j,c in enumerate(u):
+                if c in opts and k not in H: H[k]=j
+        if tab=='ULW Clients': H['name']=1;H['rep']=0
+        for j,c in enumerate(u):
+            if c in CK and 'contact' not in H: H['contact']=j
+            if c in FN and 'fn' not in H: H['fn']=j
+            if c in LN and 'ln' not in H: H['ln']=j
+        start=hi+1
+    stage=''
+    for ri,r in enumerate(rows):
+        if ri<start: continue
+        g=lambda k:(r[H[k]] if k in H and H[k]<len(r) else '').strip()
+        ne=[c for c in r if c]
+        if not ne: continue
+        nm=g('name')
+        if len(ne)==1:
+            if ne[0].upper() in STAGES: stage=STAGES[ne[0].upper()]
+            elif re.search(r'\b(LOCAL|LODGE|COUNCIL)\b',ne[0],re.I) and len(ne[0])<80:
+                nx=[y for y in rows[ri+1:ri+6] if any(y)]
+                cs=[y[0] for y in nx if len([c for c in y if c])==1]
+                if cs and re.fullmatch(r"[A-Za-z .'\-]+, ?[A-Z]{2}",cs[0].strip()):
+                    city,stt=[t.strip() for t in cs[0].rsplit(',',1)]
+                    ph=next((re.sub(r'^(Office|Phone|Tel)[: ]*','',c,flags=re.I).strip() for c in cs[1:3] if re.search(r'\d{3}.?\d{3}.?\d{4}',c)),'')
+                    nm2=ne[0].strip().rstrip('*').strip();aff2=affof(nm2,tab)
+                    recs.append(dict(tab=tab,stage=stage or 'Listed (no stage)',name=nm2,aff=aff2,num=numof(nm2,aff2),city=city,state=stt,zip='',contact='',phone=ph,email='',web='',prov='',rep='',notes=''))
+            continue
+        if nm.upper() in STAGES: stage=STAGES[nm.upper()]
+        if not nm or nm.upper() in STAGES: continue
+        cells=' '.join(r);email=g('email');web=g('web')
+        if '@' not in email:
+            m=re.search(r'[\w.+\-]+@[\w\-]+\.[\w.\-]+',cells);email=m.group(0) if m else ''
+        if not web or not re.search(r'\.\w',web) or '@' in web:
+            m=re.search(r'(https?://\S+|www\.\S+|\b[\w\-]+\.(?:org|com|net|us)\b\S*)',' '.join(c for c in r if '@' not in c));web=m.group(0) if m else ''
+        notes=g('notes')
+        if 'notes' in H:
+            ex=[c for c in r[H['notes']+1:] if c]
+            if ex: notes=(notes+' | '+' | '.join(ex)).strip(' |')
+        ta=g('aff') if hi is None else ''
+        aff=(affof(nm,tab) or affof(ta,tab) or ta) if ta else affof(nm,tab)
+        st=g('state').upper() if re.fullmatch(r'[A-Za-z]{2}',g('state')) else g('state')
+        z=g('zip')
+        if re.fullmatch(r'\d{4}',z): z='0'+z
+        stg=stage or 'Listed (no stage)';pv=g('prov');rep=g('rep')
+        if tab=='ULW Clients': stg='Competitor client list';pv=pv or 'Union Labor Works'
+        if tab=='LinkedUnion Clients': stg='Competitor client list';pv='LinkedUnion'
+        if tab=='UnionActive Clients' and not pv: pv='UnionActive'
+        pv,rep=prov(pv,rep)
+        recs.append(dict(tab=tab,stage=stg,name=nm.rstrip('- *').strip(),aff=aff,num=numof(nm,aff),city=g('city'),state=st,zip=z,contact=g('contact') or (g('fn')+' '+g('ln')).strip(),phone=g('phone'),email=email,web=web,prov=pv,rep=rep,notes=notes[:500]))
+idx=collections.defaultdict(list)
+def addidx(f,org,st,city,form):
+    try: f=int(str(f).replace(',',''))
+    except: return
+    code=org.split(' ')[0];m=re.search(r'\b(\d+)\b',org[len(code):])
+    if m: idx[(code,int(m.group(1)))].append(dict(f=f,st=st,city=city,form=form))
+for r in jl(IL2)['values']:   # Prospect index A:G  -> file, org, level, sector, aff, city, state
+    r=r+['']*7; addidx(r[0],r[1],r[6],r[5],'LM-2')
+for r in jl(ISM)['values']:   # Small locals C:M -> org, city, state, form, ... file at index 10
+    r=r+['']*11; addidx(r[10],r[0],r[2],r[1],r[3])
+st=collections.Counter()
+for r in recs:
+    r['file']='';r['conf']='';r['form']=''
+    if not r['aff'] or r['num'] is None: continue
+    c=idx.get((r['aff'],r['num']),[])
+    if not c: continue
+    same=[x for x in c if x['st']==r['state']]
+    if len(same)==1: p,cf=same[0],'High'
+    elif len(same)>1:
+        cc=[x for x in same if x['city'].lower()==r['city'].lower()]
+        p,cf=(cc[0],'High') if len(cc)==1 else (same[0],'Review')
+    elif len(c)==1 and not r['state']: p,cf=c[0],'Medium'
+    else: continue
+    r['file']=p['f'];r['conf']=cf;r['form']=p['form'];st[cf]+=1
+PRI={'Signed (NEP client)':0,'Quote delivered':1,'Prospect (in contact)':2,'Ready to call':3,'Listed (no stage)':4,'Needs more info':5,'Not ready to call':6,'Defunct':7,'Competitor client list':8}
+recs.sort(key=lambda r:(r['file']=='',str(r['file']),PRI.get(r['stage'],9),r['email']=='',r['contact']==''))
+wb=Workbook();ws=wb.active;ws.title='Contacts & pipeline'
+ws.append(['Organization','Affiliate','City','State','Zip','Contact','Phone','Email','Website','Website provider (per master list)','NEP rep','Pipeline stage','Notes (from master list)','Source list','OLMS file #','Match confidence','OLMS form'])
+for r in recs: ws.append([r['name'],r['aff'],r['city'],r['state'],r['zip'],r['contact'],r['phone'],r['email'],r['web'],r['prov'],r['rep'],r['stage'],r['notes'],r['tab'],r['file'],r['conf'],r['form']])
+for c in ws['E']+ws['G']: c.number_format='@'
+wb.save(OUT)
+print(json.dumps({'records':len(recs),'tabs':len(T),'matched':sum(1 for r in recs if r['file']!=''),'distinct_unions':len({r['file'] for r in recs if r['file']!=''}),'confidence':st,'stages':collections.Counter(r['stage'] for r in recs)}))
+-----END master_import.py-----
+
+STEP 8 (Friday), weekly digest. Read the Last updated columns (Union profiles AC, International profiles AC, Consolidation targets Y, International consolidation targets Y, Competitor watch K, Small locals N) and report what changed in the last 7 days: new and updated profiles by sector; new Tier 1 and Tier 2 consolidation targets (organization, sector, total addressable spend, named competitors); targets that changed tier or no longer qualify; new competitor relationships, calling out any union newly paying NEP Services or newly paying BMA Media Group, 617 Media Group, Union Labor Works or Union Up; and new small locals. Keep it to a short, scannable summary.
+
+END OF RUN. Summarize: weekday and sectors processed, OLMS 2026 filings received through what date, counts of rows added and updated per tab, any new Tier 1 targets or new NEP Services relationships, unmapped affiliate codes, and any errors. On Monday to Thursday, if nothing was added or updated, say "No new or updated filings for today's sectors."
