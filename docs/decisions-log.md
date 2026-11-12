@@ -12,3 +12,5 @@
 | Nov. 11, 2026 | Steelworkers coverage fixed (district prefix and stacked layout) | USW records grew from 63 to 162 |
 | Nov. 11, 2026 | Master-list import runs every weekday instead of Fridays only | Spreads the workload and keeps call lists current within a day |
 | Nov. 12, 2026 | Mark Treglio's Google Sheet copy of the MASTER Union Database replaces Josh's copy as the official master | One shared file the whole team updates; Josh's copy retired |
+| Nov. 12, 2026 | Track PDI (Political Data Inc.) and OutreachCircle as competitors, category "Voter data / advocacy tool" | Josh asked whether the system watches PDI; it did not. Payments to them now count as advocacy spend and appear in Competitor watch |
+| Nov. 12, 2026 | One-time 2025 backfill for PDI and OutreachCircle in Competitor watch | Three unions found: NEA International (OutreachCircle, $30,000), UNITE HERE Local 11 (PDI, $10,402), SEIU Local 99 (OutreachCircle, $12,000). The last two were paid only in installments under $5,000, which the regular build does not count (see wish list #15) |

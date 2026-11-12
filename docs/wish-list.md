@@ -15,6 +15,7 @@
 | 11 | HubSpot integration | Parked |
 | 12 | Lead card | Done |
 | 13 | Team call lists | Done |
+| 15 | Count non-itemized vendor payments (use each vendor's full-year payee total, not only payments of $5,000+) | Idea |
 | 14 | Decision-maker contact enrichment (current leader, phone, email, LinkedIn link from sources beyond the master list) | Idea |
 
 The live list is the Wish list tab in the sheet.
