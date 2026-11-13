@@ -32,13 +32,16 @@ const top=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);const fmt=a=>a.slice(0,4).
 const pp={};ppl.forEach(r=>pp[r.PAYER_PAYEE_ID]=r);const tot={};totl.forEach(r=>tot[r.RPT_ID]=r);
 const U={};const byR={};for(const [f,r] of Object.entries(lm2)){if(!keep(r))continue;byR[r.RPT_ID]=f;U[f]={r,staff:[],pay:0,ad:0,pr:0,org:0,polc:0,vend:{},tech:{},comp:{},compP:{},b:{web:{},mem:{},adv:{},dig:{},prt:{}}}}
 for(const e of emp){const f=byR[e.RPT_ID];if(!f)continue;const s=U[f];const ti=(e.TITLE||'').toUpperCase().trim();if(STAFF.test(ti)&&!STAFF_X.test(ti)){s.staff.push(tc(ti+' ('+(e.FIRST_NAME||'').trim()+' '+(e.LAST_NAME||'').trim()+')'));s.pay+=+e.TOTAL||0}}
-for(const g of gen){const f=byR[g.RPT_ID];if(!f)continue;const s=U[f];const v=pp[g.PAYER_PAYEE_ID]||{};const nm=(v.NAME||'?').trim();const NM=nm.toUpperCase();const txt=((g.PURPOSE||'')+' | '+(v.TYPE_OR_CLASS||'')+' | '+nm).toUpperCase();const a=+g.AMOUNT||0;
+const GEN=(s,g,v)=>{const nm=(v.NAME||'?').trim();const NM=nm.toUpperCase();const txt=((g.PURPOSE||'')+' | '+(v.TYPE_OR_CLASS||'')+' | '+nm).toUpperCase();const a=+g.AMOUNT||0;
  const roy=/ROYALT|GROUP LICENS|LICENSING|RESIDUAL|PLAYER/.test(txt);const isAd=!roy&&AD.test(txt),isPr=!roy&&!isAd&&PRINT.test(txt);if(isAd)s.ad+=a;if(isPr)s.pr+=a;if((isAd||isPr)&&ORG.test(txt))s.org+=a;if((isAd||isPr)&&g.DISBURSEMENT_TYPE=='502')s.polc+=a;if(isAd||isPr){s.vend[nm]=(s.vend[nm]||0)+a}else if(TECH.test(txt)&&!TX.test(txt)){s.tech[nm]=(s.tech[nm]||0)+a}
  for(const [cat,lab,re] of VEND){if(re.test(NM)){s.comp[lab]=s.comp[lab]||{cat,amt:0,purp:{}};s.comp[lab].amt+=a;const p=(g.PURPOSE||'').trim();if(p)s.comp[lab].purp[p]=(s.comp[lab].purp[p]||0)+1;break}}
- if(MERCH.test(txt)||PAYX.test(NM))continue;let b=null;
+ if(MERCH.test(txt)||PAYX.test(NM))return;let b=null;
  if(CADV.test(txt))b='adv';else if(g.DISBURSEMENT_TYPE=='502'&&!POLX.test(txt)&&(CAD.test(txt)||CPRINT.test(txt)||CWEB.test(txt)||CMEM.test(txt)))b='adv';
  else if(CWEB.test(txt))b='web';else if(CMEM.test(txt))b='mem';else if(CPRINT.test(txt))b='prt';else if(CAD.test(txt))b='dig';
- if(b){const k=norm(nm);s.b[b][k]=(s.b[b][k]||[nm,0]);s.b[b][k][1]+=a}}
+ if(b){const k=norm(nm);s.b[b][k]=(s.b[b][k]||[nm,0]);s.b[b][k][1]+=a}};
+for(const g of gen){const f=byR[g.RPT_ID];if(!f)continue;GEN(U[f],g,pp[g.PAYER_PAYEE_ID]||{})}
+const dT=new Set(gen.map(g=>g.DISBURSEMENT_TYPE));const gp={};for(const g of gen){if(g.PURPOSE&&!gp[g.PAYER_PAYEE_ID])gp[g.PAYER_PAYEE_ID]=g.PURPOSE}
+for(const v of ppl){const f=byR[v.RPT_ID];if(!f||v.PAYER_PAYEE_TYPE!='1002'||!dT.has(v.RCPT_DISB_TYPE))continue;const a=+v.NON_ITEMIZED||0;if(a>0)GEN(U[f],{PURPOSE:gp[v.PAYER_PAYEE_ID]||v.TYPE_OR_CLASS||'',DISBURSEMENT_TYPE:v.RCPT_DISB_TYPE,AMOUNT:a},v)}
 const LBL={web:'Website',mem:'Member comms',adv:'Advocacy/political',dig:'Social/digital/ads',prt:'Print/magazine'};
 const profiles={},cons={},comp=[],small={};
 for(const [f,s] of Object.entries(U)){const r=s.r;const t=tot[r.RPT_ID]||{};const st=[...new Set(s.staff)];const tv=top(s.vend);const topC=new Set(tv.slice(0,4).map(x=>x[0]));const nep=!!s.comp['NEP Services'];

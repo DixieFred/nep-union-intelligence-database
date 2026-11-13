@@ -7,7 +7,7 @@
 
 ## Spend classification
 
-Itemized LM-2 disbursements are classified by payee and purpose into service lines: website, member communications, advocacy, digital, print and political. Only payments of $5,000 or more are itemized by the DOL, so every spend figure is a floor, not a total. The DOL file also lists each major vendor's full-year total, including smaller payments; the build does not use it yet (wish list #15).
+Itemized LM-2 disbursements are classified by payee and purpose into service lines: website, member communications, advocacy, digital, print and political. Only payments of $5,000 or more are itemized by the DOL, so every spend figure is a floor, not a total. Since Nov. 12, 2026 the build also adds each vendor's non-itemized amount from the payer/payee file, so a vendor paid $5,000+ in the year in smaller installments is counted in full. Those amounts are classified by vendor name and type (and the vendor's first itemized purpose, when there is one).
 
 ## Sectors and levels
 
