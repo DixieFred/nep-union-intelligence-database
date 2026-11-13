@@ -19,3 +19,10 @@
 | Solid spend shown as Low confidence when unmatched | Added "Spend only" level |
 | USW locals missed (district prefix, stacked rows) | Import script handles both; re-imported |
 | Merges failed across frozen columns | Unfroze before merging |
+
+## 2026-11-13: Competitor list drives the vendor scan
+- New "Competitor list" tab (70 vendors, tiers Us / Direct / Adjacent / Track only / Lead source). Its Match pattern column is now the only source of vendor regexes; the weekday refresh reads it in Step 1, so adding a row takes effect on the next run.
+- Category "Voter data (partner)" (L2) is tracked but excluded from competitor totals, the Executive brief and competitor signals.
+- Backfill from 2025 and 2026 DOL filings: 189 new Competitor watch rows (Doyle Printing 50, Mosaic 44, K&R Branding 41, Unions America 14, Velarium 13, Campaign Workshop 7, Arandell 5, Clowder 5, ActBlue 4, M+R 2, 911 Media 2, Hamburger Group 1, Team Civx 1). Updated 82 Union profiles, 39 International profiles, 29 Consolidation targets and 37 International consolidation targets; 14 new competitor signals.
+- No DOL matches yet for Unionly, L2 or WinRed. UnionActive is billed as "UNIONS-AMERICA.COM, INC", so it appears under Unions America.
+- Competitor takeaway dropdown (Lists!E) now reads from the Competitor list tab.

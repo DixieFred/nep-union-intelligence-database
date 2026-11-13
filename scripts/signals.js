@@ -6,7 +6,7 @@ const offs=(emp,R)=>{const m={};for(const e of emp){const f=R[e.RPT_ID];if(!f)co
 const OA=offs(empA,latest(lmA)),OB=offs(empB,latest(lmB));
 const last=n=>n.toUpperCase().split(' ').pop();
 const money=v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':Math.round(v/1000)+'K');
-const compOf=(R)=>{const m={};for(const c of R.comp){if(c[3]=='NEP Services')continue;(m[c[9]]=m[c[9]]||{})[c[3]]=c[2]}return m};
+const compOf=(R)=>{const m={};for(const c of R.comp){if(c[3]=='NEP Services'||/partner/i.test(c[2]))continue;(m[c[9]]=m[c[9]]||{})[c[3]]=c[2]}return m};
 const CA=compOf(A),CB=compOf(B);
 const teamOfCat=c=>/Member platform/.test(c)?'Sales':/Advocacy|Voter|Agency/.test(c)?'Advocacy':/Print/.test(c)?'Print':'All';
 const push=(f,p,type,detail,pts,team,subj)=>out.push([today,p[3],+f,type,detail,pts,team,p[27],f+'|'+type+'|'+subj+'|'+p[27]]);
