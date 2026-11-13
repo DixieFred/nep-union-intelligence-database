@@ -26,3 +26,7 @@
 - Backfill from 2025 and 2026 DOL filings: 189 new Competitor watch rows (Doyle Printing 50, Mosaic 44, K&R Branding 41, Unions America 14, Velarium 13, Campaign Workshop 7, Arandell 5, Clowder 5, ActBlue 4, M+R 2, 911 Media 2, Hamburger Group 1, Team Civx 1). Updated 82 Union profiles, 39 International profiles, 29 Consolidation targets and 37 International consolidation targets; 14 new competitor signals.
 - No DOL matches yet for Unionly, L2 or WinRed. UnionActive is billed as "UNIONS-AMERICA.COM, INC", so it appears under Unions America.
 - Competitor takeaway dropdown (Lists!E) now reads from the Competitor list tab.
+
+## 2026-11-13: UA naming
+- United Association locals (OLMS code PPF) now display as "UA" (for example "UA Local 9"). Renamed 557 existing organization cells across profiles, targets, Competitor watch, Small locals and Signals log, plus 538 affiliate codes in Contacts & pipeline. The build function and master import now produce UA going forward. The OLMS code PPF stays in the Affiliate map because that is DOL's code.
+- K&R Branding moved from Direct to Adjacent (Josh, Nov. 13).

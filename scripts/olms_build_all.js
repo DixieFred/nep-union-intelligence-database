@@ -6,7 +6,7 @@ const live=r=>r.TERMINATE!='T';
 const lm2=latest(lm,r=>r.FORM_TYPE=='LM-2'&&live(r));const sm=latest(lm,r=>r.FORM_TYPE!='LM-2'&&live(r)&&!lm2[r.F_NUM]);const prev=latest(prevLm,r=>true);
 const keep=r=>!onlySectors||onlySectors.includes(secOf(r));
 const tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
-const orgName=r=>{if(r.AFF_ABBR=='UNAFF')return tc(r.UNION_NAME.trim());const u=(r.UNIT_NAME||'').trim();const d=[r.DESIG_NAME,r.DESIG_NUM,r.DESIG_SUF].filter(x=>x&&x.trim()).join(' ').trim();let o=(r.AFF_ABBR+' '+d).trim();if(u&&!d.toUpperCase().includes(u.toUpperCase()))o+=' ('+tc(u)+')';return o.replace(/\s+/g,' ').replace(' LU ',' Local ').replace(' NHQ',' International')};
+const orgName=r=>{if(r.AFF_ABBR=='UNAFF')return tc(r.UNION_NAME.trim());const u=(r.UNIT_NAME||'').trim();const d=[r.DESIG_NAME,r.DESIG_NUM,r.DESIG_SUF].filter(x=>x&&x.trim()).join(' ').trim();let o=((r.AFF_ABBR=='PPF'?'UA':r.AFF_ABBR)+' '+d).trim();if(u&&!d.toUpperCase().includes(u.toUpperCase()))o+=' ('+tc(u)+')';return o.replace(/\s+/g,' ').replace(' LU ',' Local ').replace(' NHQ',' International')};
 const levelOf=r=>{if(r.AFF_ABBR=='UNAFF')return 'Independent';const p=((r.DESIG_NAME||'').trim().split(' ')[0]||'').toUpperCase();return ({NHQ:'International',LU:'Local',LG:'Local',LL:'Local',BR:'Local',CH:'Local',SLG:'Local',UNIT:'Local',BCTC:'Building trades council'})[p]||(p?'Council / region':'Local')};
 const cityOf=r=>{const c=(r.CITY||'').trim();return c==c.toUpperCase()?tc(c):c};
 const elec=r=>{const ne=(r.NEXT_ELECTION||'').trim();const m=ne.match(/^(\d{2})\/(\d{4})/);return m?m[2]+'-'+m[1]:ne};
