@@ -2,7 +2,7 @@
 
 | # | Idea | Status |
 |---|---|---|
-| 1 | Weekly hot list | Idea |
+| 1 | Weekly hot list | Done (Phase 1, Nov. 12, 2026) |
 | 2 | Website audit of top prospects | Idea |
 | 3 | Meta Ad Library spend check | Idea |
 | 4 | FEC and state campaign finance data | Idea |

@@ -30,7 +30,8 @@ It is intentionally separate from HubSpot. HubSpot integration is deferred pendi
 | `docs/decisions-log.md` | Key decisions and the reasoning behind them |
 | `docs/build-history.md` | Build sequence, problems found and how they were fixed |
 | `docs/wish-list.md` | Snapshot of the Wish list tab |
-| `docs/hot-list-design.md` | Design for the weekly hot list of buying signals (planned) |
+| `docs/hot-list-design.md` | Hot list of buying signals: design and what was built |
+| `scripts/signals.js` | Browser-side function that detects buying signals between two filings |
 | `scripts/olms_build_all.js` | Browser-side builder that turns the OLMS export into profile and consolidation rows |
 | `scripts/master_import.py` | Normalizes and matches the master list into Contacts & pipeline |
 | `scheduled-task/weekday-refresh-prompt.txt` | Full instructions the scheduled task runs |

@@ -1,4 +1,4 @@
-Weekday refresh of Josh Friedrich's Google Sheet "NEP Union Intelligence Database" (spreadsheet ID 1c3j7reNvBeBTLUC9B_N2lUugvR1ZQnfju_DXv1QT1sk), built from U.S. DOL OLMS yearly LM data. Run unattended: do not ask questions, make reasonable choices, and report at the end. Never delete rows in the data tabs. Never edit these tabs: Executive brief, Advocacy & political, Sales: websites & Connect Plus+, Print & magazine, Competitor takeaway, Sector summary, Prospect index, Lists, Affiliate map, Method & caveats (they are formulas or reference tables and update themselves). The only write to Contacts & pipeline is the Step 7B replacement.
+Weekday refresh of Josh Friedrich's Google Sheet "NEP Union Intelligence Database" (spreadsheet ID 1c3j7reNvBeBTLUC9B_N2lUugvR1ZQnfju_DXv1QT1sk), built from U.S. DOL OLMS yearly LM data. Run unattended: do not ask questions, make reasonable choices, and report at the end. Never delete rows in the data tabs. Never edit these tabs: Executive brief, Hot list, Lead status, Advocacy & political, Sales: websites & Connect Plus+, Print & magazine, Competitor takeaway, Sector summary, Prospect index, Lists, Affiliate map, Method & caveats (they are formulas or reference tables and update themselves). The only write to Contacts & pipeline is the Step 7B replacement.
 
 WHAT TODAY'S RUN DOES. Determine today's weekday in America/Chicago.
 - Monday to Thursday: refresh Union profiles, Consolidation targets and Competitor watch for the sectors whose "Update day" in the Affiliate map tab equals today (Steps 1 to 6), then re-import the NEP master list into Contacts & pipeline (Step 7B).
@@ -20,16 +20,18 @@ TOOLS: The cloud container cannot reach olmsapps.dol.gov. Use the built-in brows
 
 STEP 1. Read 'Affiliate map'!A2:D500 and build MAP = {code: {name, sector}} and the list of today's sectors (Monday to Thursday). Report any affiliate code you meet in the OLMS data that is not in the map (it defaults to "Independent & other"); do not add it yourself.
 
-STEP 2. Open https://olmsapps.dol.gov/olpdr/ with preview_start (request_access with scope "site" if asked). With javascript_tool get the yearly download links for 'Year 2026' and 'Year 2025': [...document.querySelectorAll('a')].find(a=>a.textContent.trim()=='Year 2026').href (last known: 2026 = https://olmsapps.dol.gov/olpdr/GetYearlyFileServlet?report=gOgy, 2025 = ...report=gOgt). Then run in javascript_tool (replace URL26, URL25, MAPJSON with the MAP object as JSON, and SECTORS with a JSON array of today's sectors, or null on Friday):
+STEP 2. Open https://olmsapps.dol.gov/olpdr/ with preview_start (request_access with scope "site" if asked). With javascript_tool get the yearly download links for 'Year 2026' and 'Year 2025': [...document.querySelectorAll('a')].find(a=>a.textContent.trim()=='Year 2026').href (last known: 2026 = https://olmsapps.dol.gov/olpdr/GetYearlyFileServlet?report=gOgy, 2025 = ...report=gOgt). Then run in javascript_tool (replace URL26, URL25, MAPJSON with the MAP object as JSON, SECTORS with a JSON array of today's sectors, or null on Friday, and TODAY with today's date as YYYY-MM-DD):
 
 await new Promise((res,rej)=>{if(window.JSZip)return res();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=res;s.onerror=()=>rej('jszip blocked');document.head.appendChild(s)});
 const PZ=(z)=>async(pref)=>{const n=Object.keys(z.files).find(n=>n.startsWith(pref+'_data'));const s=await z.file(n).async('string');const L=s.split(/\r?\n/);const h=L[0].split('|').map(x=>x.trim());const rows=[];let buf='';for(let i=1;i<L.length;i++){buf=buf?buf+' '+L[i]:L[i];const v=buf.split('|');if(v.length<h.length)continue;const o={};h.forEach((k,j)=>o[k]=v[j]);rows.push(o);buf=''}return rows};
 window._buildAll=BUILD_FUNCTION;
 const P=PZ(await JSZip.loadAsync(await (await fetch('URL26')).arrayBuffer()));
-const lm25=await PZ(await JSZip.loadAsync(await (await fetch('URL25')).arrayBuffer()))('lm_data');
+const Q=PZ(await JSZip.loadAsync(await (await fetch('URL25')).arrayBuffer()));
+const lm25=await Q('lm_data');
 const lm26=await P('lm_data');
 window._R=_buildAll(2026,lm26,await P('ar_disbursements_genrl'),await P('ar_payer_payee'),await P('ar_disbursements_emp_off'),await P('ar_disbursements_total'),lm25,MAPJSON,SECTORS);
-({profiles:Object.keys(_R.profiles).length,cons:Object.keys(_R.cons).length,comp:_R.comp.length,small:Object.keys(_R.small).length,latestReceived:lm26.map(r=>r.RECEIVE_DATE).sort().pop(),unmapped:[...new Set(lm26.map(r=>r.AFF_ABBR).filter(c=>!MAPJSON[c]))]})
+if(SECTORS){const emp25=await Q('ar_disbursements_emp_off');window._R25=_buildAll(2025,lm25,await Q('ar_disbursements_genrl'),await Q('ar_payer_payee'),emp25,await Q('ar_disbursements_total'),[],MAPJSON,SECTORS);window._SIG=SIGNALS_FUNCTION(_R25,_R,emp25,await P('ar_disbursements_emp_off'),lm25,lm26,'TODAY')}
+({signals:window._SIG?_SIG.length:0,profiles:Object.keys(_R.profiles).length,cons:Object.keys(_R.cons).length,comp:_R.comp.length,small:Object.keys(_R.small).length,latestReceived:lm26.map(r=>r.RECEIVE_DATE).sort().pop(),unmapped:[...new Set(lm26.map(r=>r.AFF_ABBR).filter(c=>!MAPJSON[c]))]})
 
 where BUILD_FUNCTION is exactly this function (paste it verbatim):
 
@@ -90,6 +92,42 @@ for(const [f,s] of Object.entries(U)){const r=s.r;const t=tot[r.RPT_ID]||{};cons
 for(const [f,r] of Object.entries(sm)){if(!keep(r))continue;small[f]=[secOf(r),AN(r.AFF_ABBR),orgName(r),cityOf(r),(r.STATE||'').trim(),r.FORM_TYPE,year,+r.MEMBERS||0,mchg(r,f),+r.TTL_RECEIPTS||0,+r.TTL_ASSETS||0,elec(r),+f]}
 return {profiles,cons,comp,small,lm2Files:Object.keys(lm2).filter(f=>keep(lm2[f])).map(Number),smallFiles:Object.keys(sm).filter(f=>keep(sm[f])).map(Number)}}
 
+and SIGNALS_FUNCTION is exactly this function (paste it verbatim):
+
+function(A,B,empA,empB,lmA,lmB,today){
+const out=[];const tc=s=>s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+const latest=lm=>{const b={};lm.filter(r=>r.FORM_TYPE=='LM-2'&&r.TERMINATE!='T').forEach(r=>{const x=b[r.F_NUM];if(!x||r.RECEIVE_DATE>x.RECEIVE_DATE)b[r.F_NUM]=r});const o={};for(const [f,r] of Object.entries(b))o[r.RPT_ID]=f;return o};
+const cls=t=>/^(BUSINESS MANAGER|BUSINESS MGR|BUS\.? MGR)/.test(t)?'business manager':/^EXECUTIVE DIRECTOR/.test(t)?'executive director':/^PRESIDENT/.test(t)?'president':null;
+const offs=(emp,R)=>{const m={};for(const e of emp){const f=R[e.RPT_ID];if(!f)continue;const c=cls((e.TITLE||'').toUpperCase().trim());if(!c)continue;const nm=tc(((e.FIRST_NAME||'')+' '+(e.LAST_NAME||'')).trim());if(!nm)continue;m[f]=m[f]||{};(m[f][c]=m[f][c]||new Set()).add(nm)}return m};
+const OA=offs(empA,latest(lmA)),OB=offs(empB,latest(lmB));
+const last=n=>n.toUpperCase().split(' ').pop();
+const money=v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':Math.round(v/1000)+'K');
+const compOf=(R)=>{const m={};for(const c of R.comp){if(c[3]=='NEP Services')continue;(m[c[9]]=m[c[9]]||{})[c[3]]=c[2]}return m};
+const CA=compOf(A),CB=compOf(B);
+const teamOfCat=c=>/Member platform/.test(c)?'Sales':/Advocacy|Voter|Agency/.test(c)?'Advocacy':/Print/.test(c)?'Print':'All';
+const push=(f,p,type,detail,pts,team,subj)=>out.push([today,p[3],+f,type,detail,pts,team,p[27],f+'|'+type+'|'+subj+'|'+p[27]]);
+for(const [f,pb] of Object.entries(B.profiles)){const pa=A.profiles[f];if(!pa)continue;
+ const oa=OA[f]||{},ob=OB[f]||{};
+ for(const c of Object.keys(ob)){if(!oa[c]||ob[c].size>3)continue;const nw=[...ob[c]].filter(n=>![...oa[c]].some(o=>last(o)==last(n)));if(nw.length)push(f,pb,'New leadership','New '+c+': '+nw.join(', '),5,'All',c+':'+nw.join(','))}
+ const nms=s=>new Set([...(s||'').matchAll(/\(([^)]+)\)/g)].map(m=>m[1].trim().toUpperCase()));
+ const sa=nms(pa[12]),sb=nms(pb[12]);
+ const add=[...sb].filter(n=>!sa.has(n)),gone=[...sa].filter(n=>!sb.has(n));
+ if(add.length)push(f,pb,'Comms hire','Added comms staff: '+add.map(tc).join(', '),4,'All','hire:'+add.join(','));
+ if(gone.length&&sb.size<sa.size)push(f,pb,'Comms staff left','Comms staff no longer listed: '+gone.map(tc).join(', '),4,'All','left:'+gone.join(','));
+ const ca=A.cons[f],cb=B.cons[f];
+ if(ca&&cb){[['Website',9,'Sales'],['Member comms',10,'Sales'],['Advocacy/political',11,'Advocacy'],['Social/digital/ads',12,'Advocacy'],['Print/magazine',13,'Print']].forEach(([lab,i,tm])=>{const a=+ca[i]||0,b=+cb[i]||0;if(b>=10000&&b-a>=10000&&(a==0||b>=a*1.25))push(f,pb,'Spend up',lab+' spend up to '+money(b)+(a?' from '+money(a):' (new)'),3,tm,lab)})}
+ else{const a=+pa[17]||0,b=+pb[17]||0;if(b>=10000&&b-a>=10000&&(a==0||b>=a*1.25))push(f,pb,'Spend up','Ad and print spend up to '+money(b)+(a?' from '+money(a):' (new)'),3,'All','adpr')}
+ const xa=CA[f]||{},xb=CB[f]||{};
+ for(const [v,c] of Object.entries(xa))if(!xb[v])push(f,pb,'Dropped competitor','No longer paying '+v,5,teamOfCat(c),'drop:'+v);
+ for(const [v,c] of Object.entries(xb))if(!xa[v])push(f,pb,'Started competitor','Started paying '+v,1,teamOfCat(c),'start:'+v);
+ const ta=pa[25],tb=pb[25];if((tb=='Tier 1'||tb=='Tier 2')&&(!ta||ta=='Tier 3'||(ta=='Tier 2'&&tb=='Tier 1')))push(f,pb,'New target tier','Now '+tb+' (was '+(ta||'not a target')+')',4,'All','tier:'+tb);
+ const ma=+pa[7]||0,mb=+pb[7]||0;if(ma>=100&&Math.abs(mb-ma)/ma>=0.10)push(f,pb,'Membership change','Membership '+(mb>ma?'up ':'down ')+Math.round(Math.abs(mb-ma)/ma*100)+'% to '+mb.toLocaleString(),2,'All',mb>ma?'up':'down');
+}
+const now=new Date(today+'T12:00:00');const mo=now.getFullYear()*12+now.getMonth();
+const seen=new Set();
+for(const R of [B,A])for(const [f,p] of Object.entries(R.profiles)){if(seen.has(f))continue;seen.add(f);const m=(p[10]||'').match(/^(\d{4})-(\d{2})$/);if(!m)continue;const d=(+m[1])*12+(+m[2]-1)-mo;if(d>=0&&d<=6)out.push([today,p[3],+f,'Election soon','Officer election '+p[10]+(d==0?' (this month)':' (in '+d+' mo)'),3,'All',p[27],f+'|Election soon|'+p[10]])}
+return out}
+
 Retrieve results with JSON.stringify(window._R.profiles), JSON.stringify(window._R.cons), JSON.stringify(window._R.comp), JSON.stringify(window._R.small) and JSON.stringify(window._R.lm2Files). The bridge truncates very large outputs (about 250K characters): if a result is too large, retrieve it in slices (for example JSON.stringify(...).slice(0,200000), then the next 200000) and reassemble with python from the saved files. Profile rows are columns A to AB; consolidation rows are A to X; competitor rows are A to J; small-local rows are A to M.
 
 STEP 3 (Mon to Thu), Union profiles. Read the OLMS file # column (AA) and the data columns of 'Union profiles'. For each row in _R.profiles keyed by OLMS file #: if not in the tab, append it with AC = today's date (YYYY-MM-DD, as a date value); if present and any value in A to AB differs (normalize: strip $ , and leading + from numbers; blank equals empty), overwrite A to AB in place and set AC to today; otherwise leave it.
@@ -100,6 +138,8 @@ STEP 4 (Mon to Thu), Consolidation targets, keyed by OLMS file # (X):
 - Tab rows in today's sectors whose file # is in _R.lm2Files but not in _R.cons, and whose Priority tier is not already "No longer qualifies (2026 report)": set A to that text, H to 2026, Y to today. Leave the other cells.
 
 STEP 5 (Mon to Thu), Competitor watch, keyed by Data year 2026 + Vendor (D) + OLMS file # (J): append rows not present (A to J, K = today); for rows present with a different amount (H) or purposes (I), overwrite H and I and set K to today. Never touch Data year 2025 rows.
+
+STEP 5B (Mon to Thu), Signals log (hot list feed). Retrieve JSON.stringify(window._SIG) (slice if large). Each row is A Date detected, B Union, C OLMS file #, D Signal, E Detail, F Points, G Team, H Filing period, I Key. Read 'Signals log'!I2:I and append only rows whose Key (I) is not already there, writing columns A to I (A as a date value, C and F as numbers, H as text). Never edit column J (it is a formula) and never delete or change existing Signals log rows. The Hot list tab is a formula and updates itself.
 
 STEP 6 (Mon to Thu). Give new rows the formats of row 2 on each tab: currency $#,##0, number #,##0, change +#,##0;-#,##0;0, date yyyy-mm-dd, and wrapped text on long text columns. Read back a sample of changed rows to verify.
 
@@ -252,4 +292,4 @@ print(json.dumps({'records':len(recs),'tabs':len(T),'matched':sum(1 for r in rec
 
 STEP 8 (Friday), weekly digest. Read the Last updated columns (Union profiles AC, International profiles AC, Consolidation targets Y, International consolidation targets Y, Competitor watch K, Small locals N) and report what changed in the last 7 days: new and updated profiles by sector; new Tier 1 and Tier 2 consolidation targets (organization, sector, total addressable spend, named competitors); targets that changed tier or no longer qualify; new competitor relationships, calling out any union newly paying NEP Services or newly paying BMA Media Group, 617 Media Group, Union Labor Works, Union Up, PDI or OutreachCircle; and new small locals. Keep it to a short, scannable summary.
 
-END OF RUN. Summarize: weekday and sectors processed, OLMS 2026 filings received through what date, counts of rows added and updated per tab, any new Tier 1 targets or new NEP Services relationships, unmapped affiliate codes, and any errors. Always report the Step 7B result (records imported, matched, or why it was skipped). On Monday to Thursday, if no filings were added or updated, say "No new or updated filings for today's sectors."
+END OF RUN. Summarize: weekday and sectors processed, OLMS 2026 filings received through what date, counts of rows added and updated per tab, any new Tier 1 targets or new NEP Services relationships, unmapped affiliate codes, and any errors. Report how many new signals were added to the Signals log by type, and the top 5 rows of 'Hot list'!B7:E11. Always report the Step 7B result (records imported, matched, or why it was skipped). On Monday to Thursday, if no filings were added or updated, say "No new or updated filings for today's sectors."

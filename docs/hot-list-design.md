@@ -1,6 +1,14 @@
-# Weekly hot list of buying signals (design, not yet built)
+# Hot list of buying signals
 
-Status: Phase 1 designed Nov. 12, 2026. Waiting on the delivery choice (Slack channel, email to team leads, or sheet tab only).
+Status: Phase 1 built Nov. 12, 2026 as tabs in the sheet (Hot list, Signals log, Lead status). Slack or email delivery may come later.
+
+## As built
+
+- **Signals log tab:** one row per signal (date, union, file #, signal, detail, points, team, filing period, key, weight now). Seeded with 1,832 signals from the 2025 vs. 2026 filings and upcoming elections. The weekday refresh appends new signals for that day's sectors (scripts/signals.js), deduplicated by key.
+- **Hot list tab:** one formula ranks the top 25 unions by decayed points over 60 days, with Team and Show NEP clients filters, top three signals as "why now," suggested price, status, contact and lead status.
+- **Lead status tab:** reps log Called / Meeting set / Proposal sent / Not interested / Won. Won and Not interested drop off the hot list.
+- Leadership changes come from officer names on the filings (president, business manager, executive director).
+- Pipeline-stage signals and quote aging are not built yet (Phase 2).
 
 ## Purpose
 
