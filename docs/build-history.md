@@ -30,3 +30,10 @@
 ## 2026-11-13: UA naming
 - United Association locals (OLMS code PPF) now display as "UA" (for example "UA Local 9"). Renamed 557 existing organization cells across profiles, targets, Competitor watch, Small locals and Signals log, plus 538 affiliate codes in Contacts & pipeline. The build function and master import now produce UA going forward. The OLMS code PPF stays in the Affiliate map because that is DOL's code.
 - K&R Branding moved from Direct to Adjacent (Josh, Nov. 13).
+
+## 2026-11-13: Year window, Fundraising watch, print dashboard
+- FEC vendor watch (240 rows), State vendor watch (331) and Tier 2 union-backed (1,684) rebuilt to 2025 and 2026 only; monthly FEC task prompt updated to roll the window and trim state rows.
+- RedFlash Group added to the Competitor list (Adjacent).
+- Fundraising watch built from 5,962 IRS 990 filings (583 rows, 314 organizations). Problems found and fixed: Deflate64-compressed batches (custom inflater), index entries pointing at the wrong batch letter (sibling fallback), large browser results read in slices.
+- Print Dashboard Data sheet built for Looker Studio; first formula version failed because LET names like `rep0` read as cell references (renamed).
+- Mockup, scope doc and Looker Studio build guide written; Monthly Fundraising watch refresh scheduled and tested end to end in the browser (600 rows, 0 errors, about 95 seconds).

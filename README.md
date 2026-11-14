@@ -5,7 +5,7 @@ Historical record of how NEP Services built its union prospecting database (Nove
 **Owner:** Josh Friedrich, Director of Digital Advocacy, NEP Services
 **Built:** Nov. 11, 2026, with Claude (Cowork)
 **Status:** Live in Google Sheets; refreshed automatically each weekday
-**Last updated:** Nov. 12, 2026
+**Last updated:** Nov. 13, 2026
 
 ## What it is
 
@@ -37,6 +37,15 @@ It is intentionally separate from HubSpot. HubSpot integration is deferred pendi
 | `scheduled-task/weekday-refresh-prompt.txt` | Full instructions the scheduled task runs |
 | `sheet-formulas/formulas.md` | Formulas and reference values exported from the live sheet |
 | `config/affiliate_map.csv` | Affiliate abbreviation to name and sector mapping |
+| `docs/fundraising-watch.md` | Fundraising watch tab: IRS 990 Schedule G scan of police, fire and EMS fundraising |
+| `docs/print-dashboard.md` | Print Division dashboard for Jordan: decisions, data source sheet, Looker Studio design |
+| `scheduled-task/monthly-fec-refresh-prompt.txt` | Monthly FEC vendor watch refresh (API key redacted) |
+| `scheduled-task/monthly-fundraising-refresh-prompt.txt` | Monthly Fundraising watch refresh |
+| `scripts/fundraising_990_scan.js` | Browser-side IRS 990 scan (zip range reads, Deflate64 inflater) |
+| `scripts/fundraising_build.py` | Builds the Fundraising watch rows from the scan export |
+| `scripts/year_window_build.py` | One-time rebuild of FEC, State and Tier 2 tabs to the two-year window |
+| `scripts/prospect_tier_build.py` | One-time build of prospect tiers and the Tier 2 union-backed tab |
+| `sheet-formulas/print-dashboard-data.md` | Formulas in the Print Dashboard Data sheet |
 
 ## What is deliberately not in this repo
 
